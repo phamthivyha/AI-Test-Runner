@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Test Execution - Human-in-the-Loop UX Wireframe v36</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    .animate-pulse-custom { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .5; } }
+    .tooltip { visibility: hidden; opacity: 0; transition: opacity 0.2s; }
+    .tooltip-trigger:hover .tooltip { visibility: visible; opacity: 1; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+  
+  <!-- CONFIRMATION DIALOG -->
+  <div id="cancelDialog" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4 overflow-hidden">
+      <div class="bg-red-50 px-6 py-4 border-b border-red-100">
+        <div class="flex items-center gap-3">
+          <div class="bg-red-100 p-2 rounded-full">
+            <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </div>
+          <h3 class="font-semibold text-red-900 text-lg">Cancel This Test Case?</h3>
+        </div>
+      </div>
+      <div class="px-6 py-4">
+        <p class="text-gray-700 mb-4">This will stop execution of <strong>"TC-516326 Navigation Link"</strong> only.</p>
+        <div class="bg-gray-50 rounded-lg p-3 text-sm">
+          <p class="text-gray-600 mb-2 font-medium">What happens:</p>
+          <ul class="space-y-2 text-gray-600">
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Completed steps will be saved</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Current step marked as cancelled</span>
+            </li>
+            <li class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-gray-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span>Remaining steps will not run</span>
+            </li>
+            <li class="flex items-center gap-2 bg-blue-50 p-2 rounded -mx-2">
+              <svg class="w-4 h-4 text-blue-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <span class="text-blue-700 font-medium">Other test cases in queue will continue</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+      <div class="px-6 py-4 bg-gray-50 flex justify-end gap-3 border-t">
+        <button onclick="hideDialog()" class="px-4 py-2 text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-100 font-medium">Go Back</button>
+        <button onclick="confirmCancel()" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" stroke-width="2"></rect></svg>
+          Cancel This Test Case
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- HEADER -->
+  <div class="bg-white rounded-t-lg border-b px-4 py-3">
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-2 text-sm text-gray-600">
+        <span>Executions</span><span>›</span><span>Test Runs</span><span>›</span>
+        <span class="font-medium text-gray-900">Authentication: Daily Regression</span>
+      </div>
+      <div class="flex items-center gap-3">
+        <span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Test Case 1 of 12</span>
+        <span id="statusBadge" class="text-xs px-2 py-1 rounded-full font-medium bg-green-100 text-green-700">● Running</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="bg-white rounded-b-lg shadow-sm">
+    
+    <!-- NOTIFICATION BANNER -->
+    <div id="stuckBanner" class="bg-amber-50 border-b border-amber-200 px-4 py-3">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <div class="bg-amber-100 p-2 rounded-full">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          </div>
+          <div>
+            <p class="font-medium text-amber-900">Step 3 needs your attention</p>
+            <p class="text-sm text-amber-700">"User should be logged in successfully" - AI cannot verify login status. <button onclick="switchTab('aiLog')" class="underline font-medium hover:text-amber-900">View AI Log →</button></p>
+          </div>
+        </div>
+        <button class="p-1.5 text-amber-500 hover:bg-amber-100 rounded">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- SUCCESS BANNER -->
+    <div id="successBanner" class="bg-green-50 border-b border-green-200 px-4 py-3 hidden">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <div>
+            <p class="text-green-800 font-medium">Input received! AI continuing...</p>
+            <p class="text-sm text-green-600">Your guidance: "<span id="submittedText"></span>"</p>
+          </div>
+        </div>
+        <button onclick="resetDemo()" class="text-sm text-green-700 underline hover:text-green-900">Reset Demo</button>
+      </div>
+    </div>
+
+    <!-- SKIP BANNER -->
+    <div id="skipBanner" class="bg-blue-50 border-b border-blue-200 px-4 py-3 hidden">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+          <p class="text-blue-800 font-medium">Step skipped. AI continuing to next step...</p>
+        </div>
+        <button onclick="resetDemo()" class="text-sm text-blue-700 underline hover:text-blue-900">Reset Demo</button>
+      </div>
+    </div>
+
+    <!-- CANCEL BANNER -->
+    <div id="cancelBanner" class="bg-red-50 border-b border-red-200 px-4 py-3 hidden">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" stroke-width="2"></rect></svg>
+          <div>
+            <p class="text-red-800 font-medium">Test case cancelled</p>
+            <p class="text-sm text-red-600">TC-516326 cancelled. Moving to next test case (2 of 12)...</p>
+          </div>
+        </div>
+        <button onclick="resetDemo()" class="text-sm text-red-700 underline hover:text-red-900">Reset Demo</button>
+      </div>
+    </div>
+
+    <!-- TABS -->
+    <div class="border-b px-4">
+      <div class="flex gap-1">
+        <button onclick="switchTab('general')" id="tabGeneral" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">General</button>
+        <button onclick="switchTab('testStep')" id="tabTestStep" class="px-4 py-3 text-sm font-medium border-b-2 border-transparent text-gray-500 hover:text-gray-700">Test Step</button>
+        <button onclick="switchTab('aiLog')" id="tabAiLog" class="px-4 py-3 text-sm font-medium border-b-2 border-purple-600 text-purple-600">
+          AI Log
+          <span id="tabBadge" class="ml-2 bg-amber-500 text-white text-xs px-1.5 py-0.5 rounded-full animate-pulse-custom">!</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- TAB CONTENT -->
+    <div class="p-4">
+      
+      <!-- General Tab -->
+      <div id="contentGeneral" class="hidden text-gray-500 text-sm">General test information...</div>
+
+      <!-- Test Step Tab -->
+      <div id="contentTestStep" class="space-y-2 hidden">
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-sm">Navigate to login page</span>
+          </div>
+          <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Passed</span>
+        </div>
+        <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-sm">Enter username "jsmith"</span>
+          </div>
+          <span class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">Passed</span>
+        </div>
+        <!-- Step 3 -->
+        <div id="step3Container" class="rounded-lg border-2 p-3 bg-blue-50 border-blue-300">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <svg id="step3Icon" class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+              <div>
+                <span class="text-sm font-medium">User should be logged in successfully</span>
+                <p id="step3Status" class="text-xs text-blue-600 mt-0.5">🔄 AI is waiting for your input...</p>
+              </div>
+            </div>
+            <span id="step3Badge" class="text-xs px-2 py-1 rounded font-medium bg-blue-100 text-blue-700">Running</span>
+          </div>
+        </div>
+        <div id="step4Container" class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border opacity-50">
+          <div class="flex items-center gap-3">
+            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <span class="text-sm text-gray-500">Verify dashboard is displayed</span>
+          </div>
+          <span id="step4Badge" class="text-xs bg-gray-200 text-gray-500 px-2 py-1 rounded">Pending</span>
+        </div>
+      </div>
+
+      <!-- AI Log Tab -->
+      <div id="contentAiLog" class="space-y-3">
+        
+        <!-- Collapsible Settings -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg overflow-hidden">
+          <button onclick="toggleSettings()" class="w-full flex items-center justify-between px-3 py-2 hover:bg-gray-100 transition-colors">
+            <div class="flex items-center gap-2">
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+              <span class="text-sm font-medium text-gray-700">AI Confirmation Settings</span>
+              <span id="savedIndicator" class="text-xs text-green-600 hidden">✓ Saved</span>
+            </div>
+            <div class="flex items-center gap-2">
+              <span id="currentSetting" class="text-xs text-gray-500 bg-gray-200 px-2 py-0.5 rounded">Ask when stuck</span>
+              <svg id="chevronIcon" class="w-4 h-4 text-gray-400 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"></path></svg>
+            </div>
+          </button>
+          
+          <div id="settingsPanel" class="px-3 pb-3 border-t border-gray-200 pt-3">
+            <div class="grid grid-cols-2 gap-2">
+              
+              <!-- Always Ask -->
+              <label id="opt1" onclick="selectBehavior('always_ask')" class="relative flex flex-col p-2.5 rounded-lg border-2 cursor-pointer transition-all border-gray-200 hover:border-gray-300 bg-white">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-800">Always ask</span>
+                  <div class="tooltip-trigger relative">
+                    <svg class="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div class="tooltip absolute bottom-full right-0 mb-2 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg z-10">
+                      <p class="font-medium mb-1">Pauses before EVERY step</p>
+                      <p class="text-gray-300">AI waits for confirmation before each step. Best for learning.</p>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-500">Confirm each step</span>
+              </label>
+              
+              <!-- Ask When Stuck -->
+              <label id="opt2" onclick="selectBehavior('ask_when_stuck')" class="relative flex flex-col p-2.5 rounded-lg border-2 cursor-pointer transition-all border-purple-500 bg-purple-50">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-800 flex items-center gap-1">
+                    Ask when stuck
+                    <span class="text-xs bg-green-100 text-green-700 px-1 py-0.5 rounded">Rec</span>
+                  </span>
+                  <div class="tooltip-trigger relative">
+                    <svg class="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div class="tooltip absolute bottom-full right-0 mb-2 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg z-10">
+                      <p class="font-medium mb-1">Pauses only when stuck</p>
+                      <p class="text-gray-300">Auto-runs, retries 3x when stuck, then asks for guidance.</p>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-500">Auto-run, ask if stuck</span>
+              </label>
+              
+              <!-- Critical Only -->
+              <label id="opt3" onclick="selectBehavior('ask_critical')" class="relative flex flex-col p-2.5 rounded-lg border-2 cursor-pointer transition-all border-gray-200 hover:border-gray-300 bg-white">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-800">Critical only</span>
+                  <div class="tooltip-trigger relative">
+                    <svg class="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div class="tooltip absolute bottom-full right-0 mb-2 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg z-10">
+                      <p class="font-medium mb-1">Pauses on critical steps</p>
+                      <p class="text-gray-300">Auto-skips non-critical stuck steps. Good for large suites.</p>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-500">Auto-skip non-critical</span>
+              </label>
+              
+              <!-- Autonomous -->
+              <label id="opt4" onclick="selectBehavior('never_ask')" class="relative flex flex-col p-2.5 rounded-lg border-2 cursor-pointer transition-all border-gray-200 hover:border-gray-300 bg-white">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-medium text-gray-800">Autonomous</span>
+                  <div class="tooltip-trigger relative">
+                    <svg class="w-3.5 h-3.5 text-gray-400 hover:text-gray-600 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <div class="tooltip absolute bottom-full right-0 mb-2 w-56 p-2 bg-gray-900 text-white text-xs rounded-lg z-10">
+                      <p class="font-medium mb-1">Fully automatic</p>
+                      <p class="text-gray-300">Never pauses. Auto-skips stuck steps after 3 retries.</p>
+                    </div>
+                  </div>
+                </div>
+                <span class="text-xs text-gray-500">Never pause, auto-skip</span>
+              </label>
+              
+            </div>
+          </div>
+        </div>
+
+        <!-- AI Log Entries -->
+        <div class="space-y-1 font-mono text-sm">
+          <div class="flex gap-3 py-1.5 text-gray-600"><span class="text-gray-400 w-20 shrink-0">10:32:01</span><span>🚀 Starting test execution...</span></div>
+          <div class="flex gap-3 py-1.5 text-gray-600"><span class="text-gray-400 w-20 shrink-0">10:32:02</span><span>✅ Step 1: Navigate to login page - Passed</span></div>
+          <div class="flex gap-3 py-1.5 text-gray-600"><span class="text-gray-400 w-20 shrink-0">10:32:05</span><span>✅ Step 2: Enter username "jsmith" - Passed</span></div>
+          <div class="flex gap-3 py-1.5 text-gray-600"><span class="text-gray-400 w-20 shrink-0">10:32:08</span><span>🔍 Step 3: Verifying login status...</span></div>
+          <div class="flex gap-3 py-1.5 text-amber-600"><span class="text-gray-400 w-20 shrink-0">10:32:12</span><span>⚠️ Cannot locate expected element "Welcome, jsmith"</span></div>
+          
+          <!-- Stuck Entry -->
+          <div id="aiLogStuck" class="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-3">
+            <div class="flex items-center gap-2 text-amber-700 font-medium mb-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+              <span class="font-sans">Step stuck - Need your help!</span>
+            </div>
+            <p class="text-amber-600 font-sans text-sm mb-4">I can't find the expected login confirmation. How should I verify the user is logged in?</p>
+            
+            <!-- Quick Replies -->
+            <div class="mb-3">
+              <div class="flex items-center gap-2 mb-2">
+                <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path></svg>
+                <span class="text-xs font-medium text-amber-700 font-sans">Suggestions:</span>
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="submitInput('Check for logout button')" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-800 rounded-full text-xs hover:bg-amber-100 font-sans">Check for logout button</button>
+                <button onclick="submitInput('Verify URL contains /dashboard')" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-800 rounded-full text-xs hover:bg-amber-100 font-sans">Verify URL contains /dashboard</button>
+                <button onclick="submitInput('Look for user avatar')" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-800 rounded-full text-xs hover:bg-amber-100 font-sans">Look for user avatar</button>
+                <button onclick="submitInput('Wait 5 more seconds')" class="px-3 py-1.5 bg-white border border-amber-300 text-amber-800 rounded-full text-xs hover:bg-amber-100 font-sans">Wait 5 more seconds</button>
+              </div>
+            </div>
+            
+            <div class="flex gap-2 mb-3">
+              <div class="flex-1 relative">
+                <input type="text" id="userInput" placeholder="Or type your own..." class="w-full px-3 py-2 pr-10 border border-amber-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 bg-white font-sans" onkeydown="if(event.key==='Enter')submitInput()">
+                <button onclick="submitInput()" class="absolute right-2 top-1/2 -translate-y-1/2 p-1 text-amber-600 hover:text-amber-800">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                </button>
+              </div>
+            </div>
+            
+            <div class="flex items-center gap-2 pt-2 border-t border-amber-200">
+              <span class="text-sm text-amber-700 font-sans">Or:</span>
+              <button onclick="skipStep()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white text-gray-700 rounded-lg hover:bg-gray-100 text-sm font-medium border border-gray-300 font-sans">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path></svg>
+                Skip Step
+              </button>
+              <button onclick="showCancelDialog()" class="flex items-center gap-1.5 px-3 py-1.5 bg-white text-red-600 rounded-lg hover:bg-red-50 text-sm font-medium border border-red-300 font-sans">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" stroke-width="2"></rect></svg>
+                Cancel This Test Case
+              </button>
+            </div>
+          </div>
+          
+          <div id="aiLogResolved" class="hidden"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentTab = 'aiLog';
+    let settingsCollapsed = false;
+    let currentBehavior = 'ask_when_stuck';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('contentGeneral').classList.add('hidden');
+      document.getElementById('contentTestStep').classList.add('hidden');
+      document.getElementById('contentAiLog').classList.add('hidden');
+      ['General', 'TestStep', 'AiLog'].forEach(t => {
+        document.getElementById('tab' + t).classList.remove('border-purple-600', 'text-purple-600');
+        document.getElementById('tab' + t).classList.add('border-transparent', 'text-gray-500');
+      });
+      const tabMap = { general: 'General', testStep: 'TestStep', aiLog: 'AiLog' };
+      document.getElementById('content' + tabMap[tab]).classList.remove('hidden');
+      document.getElementById('tab' + tabMap[tab]).classList.remove('border-transparent', 'text-gray-500');
+      document.getElementById('tab' + tabMap[tab]).classList.add('border-purple-600', 'text-purple-600');
+    }
+
+    function toggleSettings() {
+      settingsCollapsed = !settingsCollapsed;
+      document.getElementById('settingsPanel').classList.toggle('hidden', settingsCollapsed);
+      document.getElementById('chevronIcon').style.transform = settingsCollapsed ? 'rotate(180deg)' : 'rotate(0deg)';
+    }
+
+    function selectBehavior(behavior) {
+      currentBehavior = behavior;
+      const labels = { always_ask: 'Always ask', ask_when_stuck: 'Ask when stuck', ask_critical: 'Critical only', never_ask: 'Autonomous' };
+      document.getElementById('currentSetting').textContent = labels[behavior];
+      ['opt1', 'opt2', 'opt3', 'opt4'].forEach(id => {
+        document.getElementById(id).classList.remove('border-purple-500', 'bg-purple-50');
+        document.getElementById(id).classList.add('border-gray-200', 'bg-white');
+      });
+      const optMap = { always_ask: 'opt1', ask_when_stuck: 'opt2', ask_critical: 'opt3', never_ask: 'opt4' };
+      document.getElementById(optMap[behavior]).classList.remove('border-gray-200', 'bg-white');
+      document.getElementById(optMap[behavior]).classList.add('border-purple-500', 'bg-purple-50');
+      document.getElementById('savedIndicator').classList.remove('hidden');
+      setTimeout(() => document.getElementById('savedIndicator').classList.add('hidden'), 2000);
+    }
+
+    function submitInput(text) {
+      const input = text || document.getElementById('userInput').value;
+      if (!input.trim()) return;
+      document.getElementById('submittedText').textContent = input;
+      document.getElementById('stuckBanner').classList.add('hidden');
+      document.getElementById('successBanner').classList.remove('hidden');
+      document.getElementById('tabBadge').classList.add('hidden');
+      document.getElementById('aiLogStuck').classList.add('hidden');
+      document.getElementById('aiLogResolved').classList.remove('hidden');
+      document.getElementById('aiLogResolved').innerHTML = `
+        <div class="flex gap-3 py-1.5 text-blue-600"><span class="text-gray-400 w-20 shrink-0">10:32:30</span><span>💬 User: "${input}"</span></div>
+        <div class="flex gap-3 py-1.5 text-green-600"><span class="text-gray-400 w-20 shrink-0">10:32:31</span><span>✅ Got it! Proceeding...</span></div>
+      `;
+      updateStep3('resolved');
+    }
+
+    function skipStep() {
+      document.getElementById('stuckBanner').classList.add('hidden');
+      document.getElementById('skipBanner').classList.remove('hidden');
+      document.getElementById('tabBadge').classList.add('hidden');
+      document.getElementById('aiLogStuck').classList.add('hidden');
+      document.getElementById('aiLogResolved').classList.remove('hidden');
+      document.getElementById('aiLogResolved').innerHTML = `
+        <div class="flex gap-3 py-1.5 text-blue-600"><span class="text-gray-400 w-20 shrink-0">10:32:30</span><span>⏭️ Step 3 skipped by user</span></div>
+      `;
+      updateStep3('skipped');
+    }
+
+    function showCancelDialog() { document.getElementById('cancelDialog').classList.remove('hidden'); }
+    function hideDialog() { document.getElementById('cancelDialog').classList.add('hidden'); }
+
+    function confirmCancel() {
+      hideDialog();
+      document.getElementById('stuckBanner').classList.add('hidden');
+      document.getElementById('cancelBanner').classList.remove('hidden');
+      document.getElementById('tabBadge').classList.add('hidden');
+      document.getElementById('statusBadge').textContent = '● Cancelled';
+      document.getElementById('statusBadge').classList.remove('bg-green-100', 'text-green-700');
+      document.getElementById('statusBadge').classList.add('bg-red-100', 'text-red-700');
+      document.getElementById('aiLogStuck').classList.add('hidden');
+      document.getElementById('aiLogResolved').classList.remove('hidden');
+      document.getElementById('aiLogResolved').innerHTML = `
+        <div class="flex gap-3 py-1.5 text-red-600"><span class="text-gray-400 w-20 shrink-0">10:32:30</span><span>🛑 Test case cancelled by user</span></div>
+        <div class="flex gap-3 py-1.5 text-gray-500"><span class="text-gray-400 w-20 shrink-0">10:32:31</span><span>📊 Results saved. Moving to test case 2 of 12...</span></div>
+      `;
+      updateStep3('cancelled');
+      document.getElementById('step4Container').classList.add('opacity-40');
+      document.getElementById('step4Badge').textContent = 'Not Run';
+    }
+
+    function updateStep3(state) {
+      const container = document.getElementById('step3Container');
+      const badge = document.getElementById('step3Badge');
+      const status = document.getElementById('step3Status');
+      const icon = document.getElementById('step3Icon');
+      container.className = 'rounded-lg border-2 p-3 ';
+      if (state === 'resolved') {
+        container.className += 'bg-gray-50 border-gray-200';
+        badge.textContent = 'Resolved'; badge.className = 'text-xs px-2 py-1 rounded font-medium bg-green-100 text-green-700';
+        status.textContent = ''; icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+        icon.className = 'w-5 h-5 text-green-500';
+      } else if (state === 'skipped') {
+        container.className += 'bg-gray-50 border-gray-200';
+        badge.textContent = 'Skipped'; badge.className = 'text-xs px-2 py-1 rounded font-medium bg-gray-200 text-gray-600';
+        status.textContent = ''; icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7"></path>';
+        icon.className = 'w-5 h-5 text-gray-400';
+      } else if (state === 'cancelled') {
+        container.className += 'bg-red-50 border-red-200';
+        badge.textContent = 'Cancelled'; badge.className = 'text-xs px-2 py-1 rounded font-medium bg-red-100 text-red-700';
+        status.textContent = ''; icon.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+        icon.className = 'w-5 h-5 text-red-500';
+      }
+    }
+
+    function resetDemo() {
+      document.getElementById('stuckBanner').classList.remove('hidden');
+      document.getElementById('successBanner').classList.add('hidden');
+      document.getElementById('skipBanner').classList.add('hidden');
+      document.getElementById('cancelBanner').classList.add('hidden');
+      document.getElementById('tabBadge').classList.remove('hidden');
+      document.getElementById('aiLogStuck').classList.remove('hidden');
+      document.getElementById('aiLogResolved').classList.add('hidden');
+      document.getElementById('userInput').value = '';
+      document.getElementById('statusBadge').textContent = '● Running';
+      document.getElementById('statusBadge').classList.remove('bg-red-100', 'text-red-700');
+      document.getElementById('statusBadge').classList.add('bg-green-100', 'text-green-700');
+      const container = document.getElementById('step3Container');
+      container.className = 'rounded-lg border-2 p-3 bg-blue-50 border-blue-300';
+      document.getElementById('step3Badge').textContent = 'Running';
+      document.getElementById('step3Badge').className = 'text-xs px-2 py-1 rounded font-medium bg-blue-100 text-blue-700';
+      document.getElementById('step3Status').textContent = '🔄 AI is waiting for your input...';
+      document.getElementById('step3Icon').innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>';
+      document.getElementById('step3Icon').className = 'w-5 h-5 text-blue-500';
+      document.getElementById('step4Container').classList.remove('opacity-40');
+      document.getElementById('step4Badge').textContent = 'Pending';
+    }
+  </script>
+</body>
+</html>
